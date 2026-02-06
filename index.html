@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ServiceFlow — Управление сервисными работами</title>
+<style>
+/* ========================================
+   CSS CUSTOM PROPERTIES
+   ======================================== */
+:root[data-theme="light"] {
+  --c-bg: #f4f6fb;
+  --c-surface: #ffffff;
+  --c-surface-2: #f8f9fc;
+  --c-surface-3: #f0f2f7;
+  --c-border: #e3e6ef;
+  --c-border-light: #eef0f6;
+  --c-text: #1a1d2e;
+  --c-text-2: #5a6178;
+  --c-text-3: #8b92a8;
+  --c-input-bg: #ffffff;
+  --c-sidebar-bg: #101828;
+  --c-sidebar-text: #c0c7d6;
+  --c-sidebar-hover: rgba(255,255,255,.06);
+  --c-sidebar-active-bg: linear-gradient(135deg,#6c5ce7,#a55eea);
+  --c-topbar-bg: rgba(255,255,255,.92);
+  --c-overlay: rgba(15,20,35,.45);
+  --c-primary: #6c5ce7;
+  --c-primary-hover: #5a4bd1;
+  --c-primary-light: rgba(108,92,231,.1);
+  --c-primary-glow: rgba(108,92,231,.3);
+  --c-success: #00b894;
+  --c-success-light: rgba(0,184,148,.1);
+  --c-warning: #fdcb6e;
+  --c-warning-text: #b8860b;
+  --c-warning-light: rgba(253,203,110,.15);
+  --c-danger: #e74c3c;
+  --c-danger-light: rgba(231,76,60,.1);
+  --c-info: #0984e3;
+  --c-info-light: rgba(9,132,227,.1);
+  --c-purple: #a55eea;
+  --c-purple-light: rgba(165,94,234,.1);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.1);
+  --shadow-xl: 0 24px 60px rgba(0,0,0,.15);
+}
+
+:root[data-theme="dark"] {
+  --c-bg: #0b0e17;
+  --c-surface: #151a28;
+  --c-surface-2: #1a2035;
+  --c-surface-3: #1e2540;
+  --c-border: #252d42;
+  --c-border-light: #1e2540;
+  --c-text: #e4e8f1;
+  --c-text-2: #8b92a8;
+  --c-text-3: #5a6178;
+  --c-input-bg: #1a2035;
+  --c-sidebar-bg: #0a0d14;
+  --c-sidebar-text: #8b92a8;
+  --c-sidebar-hover: rgba(255,255,255,.04);
+  --c-topbar-bg: rgba(21,26,40,.92);
+  --c-overlay: rgba(0,0,0,.65);
+  --c-primary-light: rgba(108,92,231,.18);
+  --c-success-light: rgba(0,184,148,.15);
+  --c-warning-light: rgba(253,203,110,.1);
+  --c-danger-light: rgba(231,76,60,.15);
+  --c-info-light: rgba(9,132,227,.15);
+  --c-purple-light: rgba(165,94,234,.15);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.35);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.4);
+  --shadow-xl: 0 24px 60px rgba(0,0,0,.5);
+}
+
+/* ========================================
+   RESET & BASE
+   ======================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Segoe UI',system-ui,-apple-system,'Helvetica Neue',sans-serif;
+  background:var(--c-bg);
+  color:var(--c-text);
+  line-height:1.6;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  transition:background .3s,color .3s;
+}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+input,select,textarea{font-family:inherit;outline:none}
+a{text-decoration:none;color:var(--c-primary)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--c-text-3);border-radius:4px}
+
+/* ========================================
+   LOGIN PAGE
+   ======================================== */
+#loginPage{
+  min-height:100vh;
+  display:flex;
+}
+.login-hero{
+  flex:1;
+  background:linear-gradient(135deg,#6c5ce7 0%,#a55eea 50%,#fd79a8 100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:60px;
+  position:relative;
+  overflow:hidden;
+}
+.login-hero::before{
+  content:'';position:absolute;width:500px;height:500px;
+  border-radius:50%;background:rgba(255,255,255,.05);
+  top:-120px;right:-120px;
+}
+.login-hero::after{
+  content:'';position:absolute;width:350px;height:350px;
+  border-radius:50%;background:rgba(255,255,255,.04);
+  bottom:-80px;left:-60px;
+}
+.login-hero-content{position:relative;z-index:2;text-align:center;color:#fff}
+.login-hero-content .hero-icon{font-size:64px;margin-bottom:20px;display:block}
+.login-hero-content h1{font-size:38px;font-weight:800;margin-bottom:12px;letter-spacing:-.5px}
+.login-hero-content p{font-size:16px;opacity:.85;max-width:380px;line-height:1.7}
+.hero-badges{display:flex;gap:16px;margin-top:40px;flex-wrap:wrap;justify-content:center}
+.hero-badge{
+  background:rgba(255,255,255,.14);
+  backdrop-filter:blur(8px);
+  border-radius:14px;
+  padding:16px 20px;
+  text-align:center;
+  color:#fff;
+  min-width:100px;
+}
+.hero-badge .hb-icon{font-size:26px;display:block;margin-bottom:6px}
+.hero-badge span{font-size:12px;font-weight:600;opacity:.9}
+
+.login-panel{
+  width:500px;
+  background:var(--c-surface);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:50px;
+  position:relative;
+  transition:background .3s;
+}
+.theme-btn-login{
+  position:absolute;top:20px;right:20px;
+  width:42px;height:42px;border-radius:12px;
+  border:1px solid var(--c-border);
+  background:var(--c-surface-2);
+  color:var(--c-text-2);font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.theme-btn-login:hover{border-color:var(--c-primary);color:var(--c-primary);background:var(--c-primary-light)}
+
+.login-card{width:100%;max-width:380px}
+.login-card .lc-logo{text-align:center;margin-bottom:32px}
+.login-card .lc-logo .logo-box{
+  width:54px;height:54px;
+  background:linear-gradient(135deg,#6c5ce7,#a55eea);
+  border-radius:16px;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:24px;margin-bottom:14px;
+  box-shadow:0 4px 20px var(--c-primary-glow);
+}
+.login-card .lc-logo h2{font-size:22px;font-weight:700}
+.login-card .lc-logo p{font-size:13px;color:var(--c-text-2);margin-top:4px}
+
+.lc-form{display:flex;flex-direction:column;gap:18px}
+.lf-group{display:flex;flex-direction:column;gap:5px}
+.lf-group label{font-size:12px;font-weight:600;color:var(--c-text-2);text-transform:uppercase;letter-spacing:.5px}
+.lf-input-wrap{position:relative}
+.lf-input-wrap .lf-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  font-size:16px;color:var(--c-text-3);pointer-events:none;
+}
+.lf-input-wrap input{
+  width:100%;padding:11px 14px 11px 42px;
+  border:1.5px solid var(--c-border);
+  border-radius:10px;
+  background:var(--c-input-bg);
+  color:var(--c-text);
+  font-size:14px;
+  transition:all .2s;
+}
+.lf-input-wrap input:focus{border-color:var(--c-primary);box-shadow:0 0 0 3px var(--c-primary-glow)}
+.lf-input-wrap .lf-eye{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:16px;color:var(--c-text-3);
+  background:none;border:none;cursor:pointer;
+}
+
+.lf-roles{display:flex;gap:8px}
+.lf-role{
+  flex:1;padding:12px 6px;
+  border:1.5px solid var(--c-border);
+  border-radius:10px;
+  background:var(--c-input-bg);
+  text-align:center;
+  transition:all .2s;
+  cursor:pointer;
+}
+.lf-role:hover{border-color:var(--c-primary)}
+.lf-role.active{border-color:var(--c-primary);background:var(--c-primary-light);box-shadow:0 0 0 3px var(--c-primary-glow)}
+.lf-role .lr-emoji{font-size:22px;display:block;margin-bottom:3px}
+.lf-role .lr-name{font-size:10px;font-weight:700;color:var(--c-text-2);text-transform:uppercase;letter-spacing:.3px}
+
+.lf-options{display:flex;align-items:center;justify-content:space-between}
+.lf-options label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--c-text-2);cursor:pointer}
+.lf-options label input[type="checkbox"]{accent-color:var(--c-primary)}
+.lf-options a{font-size:12px;font-weight:600}
+.lf-options a:hover{text-decoration:underline}
+
+.lf-submit{
+  width:100%;padding:13px;
+  border:none;border-radius:10px;
+  background:linear-gradient(135deg,#6c5ce7,#a55eea);
+  color:#fff;font-size:15px;font-weight:700;
+  transition:all .25s;
+  position:relative;overflow:hidden;
+}
+.lf-submit:hover{transform:translateY(-2px);box-shadow:0 6px 24px var(--c-primary-glow)}
+.lf-submit:active{transform:translateY(0)}
+.lf-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+.lf-error{
+  background:var(--c-danger-light);
+  color:var(--c-danger);
+  padding:10px 14px;
+  border-radius:8px;
+  font-size:13px;font-weight:500;
+  display:none;
+  align-items:center;gap:8px;
+}
+.lf-error.show{display:flex}
+
+/* ========================================
+   APP LAYOUT
+   ======================================== */
+#appShell{display:none;min-height:100vh}
+#appShell.active{display:flex}
+
+/* SIDEBAR */
+.sidebar{
+  width:260px;
+  background:var(--c-sidebar-bg);
+  position:fixed;top:0;left:0;bottom:0;
+  display:flex;flex-direction:column;
+  z-index:100;
+  border-right:1px solid rgba(255,255,255,.05);
+  transition:background .3s;
+}
+.sb-header{
+  padding:22px 20px;
+  display:flex;align-items:center;gap:12px;
+}
+.sb-header .sb-logo{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg,#6c5ce7,#a55eea);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  box-shadow:0 2px 16px var(--c-primary-glow);
+}
+.sb-header .sb-brand{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.3px}
+
+.sb-nav{flex:1;padding:6px 10px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.sb-label{
+  font-size:9px;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--c-text-3);padding:18px 12px 6px;font-weight:700;
+}
+.sb-item{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 12px;border-radius:10px;
+  color:var(--c-sidebar-text);
+  font-size:13px;font-weight:500;
+  width:100%;text-align:left;
+  transition:all .2s;
+}
+.sb-item:hover{background:var(--c-sidebar-hover);color:#fff}
+.sb-item.active{background:var(--c-sidebar-active-bg);color:#fff;box-shadow:0 3px 14px var(--c-primary-glow)}
+.sb-item .sb-icon{font-size:17px;width:22px;text-align:center}
+.sb-item .sb-badge{
+  margin-left:auto;
+  background:var(--c-danger);color:#fff;
+  font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:8px;
+}
+
+.sb-footer{padding:14px;border-top:1px solid rgba(255,255,255,.06)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px}
+.sb-user:hover{background:var(--c-sidebar-hover)}
+.sb-avatar{
+  width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;
+}
+.sb-avatar.c-blue{background:linear-gradient(135deg,#0984e3,#00b4d8)}
+.sb-avatar.c-pink{background:linear-gradient(135deg,#e84393,#fd79a8)}
+.sb-avatar.c-green{background:linear-gradient(135deg,#00b894,#55efc4)}
+.sb-uname{font-size:12px;font-weight:600;color:#fff}
+.sb-urole{font-size:10px;color:var(--c-text-3)}
+.sb-logout{
+  width:100%;margin-top:8px;padding:8px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;color:var(--c-sidebar-text);
+  font-size:12px;font-weight:500;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:all .2s;
+}
+.sb-logout:hover{background:rgba(231,76,60,.12);color:#e74c3c;border-color:rgba(231,76,60,.2)}
+
+/* MAIN */
+.main{margin-left:260px;flex:1;min-height:100vh;transition:margin .3s}
+
+/* TOPBAR */
+.topbar{
+  background:var(--c-topbar-bg);
+  backdrop-filter:blur(16px);
+  height:64px;padding:0 32px;
+  border-bottom:1px solid var(--c-border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+  transition:background .3s;
+}
+.topbar h2{font-size:18px;font-weight:700;letter-spacing:-.2px}
+.tb-actions{display:flex;gap:8px}
+.tb-btn{
+  width:40px;height:40px;border-radius:10px;
+  border:1px solid var(--c-border);
+  background:var(--c-surface);
+  color:var(--c-text-2);font-size:17px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;position:relative;
+}
+.tb-btn:hover{border-color:var(--c-primary);color:var(--c-primary);background:var(--c-primary-light)}
+.tb-dot{
+  position:absolute;top:7px;right:7px;
+  width:7px;height:7px;border-radius:50%;
+  background:var(--c-danger);
+  border:2px solid var(--c-surface);
+}
+
+/* CONTENT */
+.page{padding:28px 32px}
+
+/* ========================================
+   REUSABLE COMPONENTS
+   ======================================== */
+
+/* BUTTONS */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 18px;border-radius:9px;
+  font-size:13px;font-weight:600;
+  transition:all .2s;white-space:nowrap;
+  border:none;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn-primary{background:linear-gradient(135deg,#6c5ce7,#a55eea);color:#fff;box-shadow:0 2px 10px var(--c-primary-glow)}
+.btn-primary:hover{box-shadow:0 6px 20px var(--c-primary-glow)}
+.btn-success{background:linear-gradient(135deg,#00b894,#55efc4);color:#fff}
+.btn-warning{background:linear-gradient(135deg,#fda829,#fdcb6e);color:#fff}
+.btn-danger{background:linear-gradient(135deg,#e74c3c,#ff7675);color:#fff}
+.btn-outline{background:var(--c-surface);border:1.5px solid var(--c-border);color:var(--c-text)}
+.btn-outline:hover{border-color:var(--c-primary);color:var(--c-primary);background:var(--c-primary-light)}
+.btn-ghost{color:var(--c-text-2);padding:8px 12px}
+.btn-ghost:hover{color:var(--c-primary);background:var(--c-primary-light)}
+.btn-s{padding:6px 12px;font-size:12px;border-radius:7px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:26px}
+.stat{
+  background:var(--c-surface);border-radius:14px;
+  padding:22px;border:1px solid var(--c-border);
+  display:flex;align-items:flex-start;gap:14px;
+  transition:all .25s;position:relative;overflow:hidden;
+}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0}
+.stat.a-blue::after{background:linear-gradient(90deg,#0984e3,#00b4d8)}
+.stat.a-green::after{background:linear-gradient(90deg,#00b894,#55efc4)}
+.stat.a-yellow::after{background:linear-gradient(90deg,#fda829,#fdcb6e)}
+.stat.a-purple::after{background:linear-gradient(90deg,#6c5ce7,#a55eea)}
+.stat.a-red::after{background:linear-gradient(90deg,#e74c3c,#ff7675)}
+.stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.stat-ic{
+  width:48px;height:48px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:21px;flex-shrink:0;
+}
+.stat-ic.blue{background:var(--c-info-light)}
+.stat-ic.green{background:var(--c-success-light)}
+.stat-ic.yellow{background:var(--c-warning-light)}
+.stat-ic.purple{background:var(--c-purple-light)}
+.stat-ic.red{background:var(--c-danger-light)}
+.stat-num{font-size:28px;font-weight:800;letter-spacing:-.8px;line-height:1}
+.stat-lbl{font-size:12px;color:var(--c-text-2);margin-top:3px;font-weight:500}
+
+/* CARD */
+.card{background:var(--c-surface);border-radius:14px;border:1px solid var(--c-border);overflow:hidden;transition:background .3s}
+.card-hd{padding:18px 22px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-hd h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.card-bd{padding:22px}
+.card-bd.np{padding:0}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{
+  padding:11px 14px;text-align:left;
+  font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;
+  color:var(--c-text-3);
+  background:var(--c-surface-2);
+  border-bottom:1px solid var(--c-border);
+  white-space:nowrap;
+}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--c-border-light);font-size:13px}
+tbody tr{transition:background .15s;cursor:pointer}
+tbody tr:hover{background:var(--c-surface-3)}
+tbody tr:last-child td{border-bottom:none}
+
+/* STATUS */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:16px;font-size:11px;font-weight:700;letter-spacing:.2px}
+.badge .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.b-new{background:var(--c-info-light);color:var(--c-info)}.b-new .dot{background:var(--c-info)}
+.b-work{background:var(--c-warning-light);color:var(--c-warning-text)}.b-work .dot{background:var(--c-warning)}
+.b-done{background:var(--c-success-light);color:var(--c-success)}.b-done .dot{background:var(--c-success)}
+.b-search{background:var(--c-purple-light);color:var(--c-purple)}.b-search .dot{background:var(--c-purple)}
+.b-closed{background:var(--c-surface-3);color:var(--c-text-3)}.b-closed .dot{background:var(--c-text-3)}
+.b-cancelled{background:var(--c-danger-light);color:var(--c-danger)}.b-cancelled .dot{background:var(--c-danger)}
+
+/* PRIORITY */
+.pri{display:inline-flex;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:700}
+.pri-high{background:var(--c-danger-light);color:var(--c-danger)}
+.pri-medium{background:var(--c-warning-light);color:var(--c-warning-text)}
+.pri-low{background:var(--c-success-light);color:var(--c-success)}
+
+/* FILTERS */
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:10px;font-weight:700;color:var(--c-text-3);text-transform:uppercase;letter-spacing:.6px}
+.fi,.fi-select,.fi-area{
+  padding:8px 12px;border:1.5px solid var(--c-border);
+  border-radius:9px;font-size:13px;color:var(--c-text);
+  background:var(--c-input-bg);transition:all .2s;outline:none;
+}
+.fi:focus,.fi-select:focus,.fi-area:focus{border-color:var(--c-primary);box-shadow:0 0 0 3px var(--c-primary-glow)}
+.fi-select{appearance:auto}
+.fi-area{min-height:80px;resize:vertical;width:100%}
+.search{position:relative;flex:1;min-width:220px}
+.search input{width:100%;padding-left:38px}
+.search .s-ic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--c-text-3);pointer-events:none}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.f-group{display:flex;flex-direction:column;gap:5px}
+.f-group.full{grid-column:1/-1}
+.f-label{font-size:13px;font-weight:600;color:var(--c-text)}
+.f-label .req{color:var(--c-danger)}
+.f-err{font-size:11px;color:var(--c-danger);display:none;font-weight:500}
+.f-group.err .fi,.f-group.err .fi-select,.f-group.err .fi-area{border-color:var(--c-danger)}
+.f-group.err .f-err{display:block}
+
+/* MODAL */
+.modal-bg{
+  position:fixed;inset:0;
+  background:var(--c-overlay);
+  backdrop-filter:blur(5px);
+  display:none;align-items:center;justify-content:center;
+  z-index:1000;padding:20px;
+}
+.modal-bg.open{display:flex}
+.modal{
+  background:var(--c-surface);border-radius:18px;
+  width:100%;max-width:580px;max-height:90vh;
+  overflow-y:auto;box-shadow:var(--shadow-xl);
+  border:1px solid var(--c-border);
+  animation:modalOpen .25s ease;
+}
+@keyframes modalOpen{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.modal.lg{max-width:780px}
+.modal.sm{max-width:420px}
+.m-head{padding:22px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between}
+.m-head h3{font-size:17px;font-weight:700}
+.m-close{
+  width:34px;height:34px;border-radius:9px;
+  background:var(--c-surface-3);color:var(--c-text-2);
+  font-size:15px;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.m-close:hover{background:var(--c-danger-light);color:var(--c-danger)}
+.m-body{padding:22px}
+.m-foot{padding:14px 22px;border-top:1px solid var(--c-border);display:flex;justify-content:flex-end;gap:8px}
+
+/* TOAST */
+.toasts{position:fixed;top:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{
+  padding:12px 18px;border-radius:10px;color:#fff;
+  font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:8px;
+  box-shadow:var(--shadow-lg);
+  min-width:300px;pointer-events:auto;
+  animation:toastSlide .35s ease;
+}
+@keyframes toastSlide{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:none}}
+.toast.t-ok{background:rgba(0,184,148,.95)}
+.toast.t-err{background:rgba(231,76,60,.95)}
+.toast.t-info{background:rgba(108,92,231,.95)}
+.toast.t-warn{background:rgba(253,163,49,.95)}
+
+/* SPECIALIST CARDS */
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.sp-card{
+  border:1.5px solid var(--c-border);border-radius:14px;
+  padding:18px;background:var(--c-surface);
+  transition:all .2s;cursor:pointer;position:relative;
+}
+.sp-card:hover{border-color:var(--c-primary);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.sp-card.sel{border-color:var(--c-primary);background:var(--c-primary-light)}
+.sp-card .sp-chk{
+  position:absolute;top:10px;right:10px;
+  width:24px;height:24px;border-radius:50%;
+  background:var(--c-primary);color:#fff;
+  display:none;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+}
+.sp-card.sel .sp-chk{display:flex}
+.sp-top{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+.sp-av{
+  width:44px;height:44px;border-radius:12px;
+  background:linear-gradient(135deg,#6c5ce7,#a55eea);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:15px;
+}
+.sp-nm{font-weight:700;font-size:14px}
+.sp-rl{font-size:12px;color:var(--c-text-2)}
+.sp-info{display:flex;flex-direction:column;gap:5px}
+.sp-row{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--c-text-2)}
+
+/* DETAIL */
+.det-grid{display:grid;grid-template-columns:5fr 3fr;gap:22px}
+.info-list{display:flex;flex-direction:column;gap:16px}
+.il-item{display:flex;flex-direction:column;gap:2px}
+.il-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--c-text-3);font-weight:700}
+.il-val{font-size:14px;font-weight:500}
+.il-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* TIMELINE */
+.timeline{display:flex;flex-direction:column}
+.tl-i{display:flex;gap:12px;padding-bottom:18px;position:relative}
+.tl-i:last-child{padding-bottom:0}
+.tl-i::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:var(--c-border)}
+.tl-i:last-child::before{display:none}
+.tl-dot{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;z-index:1;
+}
+.tl-dot.blue{background:var(--c-info-light);color:var(--c-info)}
+.tl-dot.green{background:var(--c-success-light);color:var(--c-success)}
+.tl-dot.yellow{background:var(--c-warning-light);color:var(--c-warning-text)}
+.tl-dot.purple{background:var(--c-purple-light);color:var(--c-purple)}
+.tl-title{font-size:13px;font-weight:600}
+.tl-desc{font-size:12px;color:var(--c-text-2)}
+.tl-time{font-size:11px;color:var(--c-text-3);margin-top:1px}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px}
+.empty .e-ic{font-size:48px;margin-bottom:14px}
+.empty h3{font-size:17px;font-weight:700;margin-bottom:5px}
+.empty p{font-size:13px;color:var(--c-text-2);margin-bottom:18px}
+
+/* NOTIF PANEL */
+.notif-panel{
+  position:fixed;right:-380px;top:0;width:380px;height:100vh;
+  background:var(--c-surface);border-left:1px solid var(--c-border);
+  box-shadow:-6px 0 24px rgba(0,0,0,.08);
+  z-index:500;transition:right .3s ease;
+  display:flex;flex-direction:column;
+}
+.notif-panel.open{right:0}
+.np-head{padding:20px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between}
+.np-head h3{font-size:15px;font-weight:700}
+.np-list{flex:1;overflow-y:auto;padding:10px}
+.np-item{
+  padding:12px;border-radius:10px;margin-bottom:6px;
+  border-left:3px solid;background:var(--c-surface-2);
+  transition:background .15s;
+}
+.np-item:hover{background:var(--c-surface-3)}
+.np-item.ni-info{border-left-color:var(--c-info)}
+.np-item.ni-ok{border-left-color:var(--c-success)}
+.np-item.ni-warn{border-left-color:var(--c-warning)}
+.np-title{font-size:13px;font-weight:600}
+.np-text{font-size:12px;color:var(--c-text-2);margin-top:2px}
+.np-time{font-size:11px;color:var(--c-text-3);margin-top:3px}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media(max-width:900px){
+  .login-hero{display:none}
+  .login-panel{width:100%}
+  .sidebar{display:none}
+  .main{margin-left:0}
+  .form-grid{grid-template-columns:1fr}
+  .det-grid{grid-template-columns:1fr}
+}
+@media(max-width:500px){
+  .stats{grid-template-columns:1fr}
+  .page{padding:16px}
+  .topbar{padding:0 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- TOASTS -->
+<div class="toasts" id="toasts"></div>
+
+<!-- =============================================
+     LOGIN PAGE
+     ============================================= -->
+<div id="loginPage">
+  <div class="login-hero">
+    <div class="login-hero-content">
+      <span class="hero-icon">⚙️</span>
+      <h1>ServiceFlow</h1>
+      <p>Единая платформа для управления сервисными работами, подбора специалистов и контроля выполнения заданий</p>
+      <div class="hero-badges">
+        <div class="hero-badge"><span class="hb-icon">📋</span><span>Задания</span></div>
+        <div class="hero-badge"><span class="hb-icon">👥</span><span>Персонал</span></div>
+        <div class="hero-badge"><span class="hb-icon">📊</span><span>Аналитика</span></div>
+        <div class="hero-badge"><span class="hb-icon">🔔</span><span>Уведомления</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-panel">
+    <button class="theme-btn-login" onclick="toggleTheme()" id="themeBtnLogin" title="Сменить тему">🌙</button>
+    <div class="login-card">
+      <div class="lc-logo">
+        <div class="logo-box">⚙️</div>
+        <h2>Вход в систему</h2>
+        <p>Введите учётные данные для продолжения</p>
+      </div>
+
+      <div class="lf-error" id="loginErr">
+        ❌ <span id="loginErrText">Неверный логин или пароль</span>
+      </div>
+
+      <form class="lc-form" onsubmit="doLogin(event)">
+        <div class="lf-group">
+          <label for="inpLogin">Логин</label>
+          <div class="lf-input-wrap">
+            <span class="lf-icon">👤</span>
+            <input type="text" id="inpLogin" placeholder="Введите логин" autocomplete="username">
+          </div>
+        </div>
+
+        <div class="lf-group">
+          <label for="inpPass">Пароль</label>
+          <div class="lf-input-wrap">
+            <span class="lf-icon">🔒</span>
+            <input type="password" id="inpPass" placeholder="Введите пароль" autocomplete="current-password">
+            <button type="button" class="lf-eye" onclick="toggleEye()">👁</button>
+          </div>
+        </div>
+
+        <div class="lf-group">
+          <label>Выберите роль</label>
+          <div class="lf-roles" id="roleSelector">
+            <div class="lf-role active" data-role="store" onclick="pickRole('store',this)">
+              <span class="lr-emoji">🏪</span>
+              <span class="lr-name">Магазин</span>
+            </div>
+            <div class="lf-role" data-role="office" onclick="pickRole('office',this)">
+              <span class="lr-emoji">🏢</span>
+              <span class="lr-name">Офис</span>
+            </div>
+            <div class="lf-role" data-role="hr" onclick="pickRole('hr',this)">
+              <span class="lr-emoji">👥</span>
+              <span class="lr-name">HR</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lf-options">
+          <label><input type="checkbox" checked> Запомнить</label>
+          <a href="#" onclick="event.preventDefault();toast('info','Обратитесь к администратору')">Забыли пароль?</a>
+        </div>
+
+        <button type="submit" class="lf-submit" id="loginSubmit">Войти в систему</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================
+     APP SHELL
+     ============================================= -->
+<div id="appShell">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <header class="topbar">
+      <h2 id="pageTitle">Дашборд</h2>
+      <div class="tb-actions">
+        <button class="tb-btn" onclick="toggleTheme()" id="themeBtnApp" title="Тема">🌙</button>
+        <button class="tb-btn" onclick="toggleNotif()">🔔<span class="tb-dot"></span></button>
+      </div>
+    </header>
+    <div class="page" id="pageContent"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="notif-panel" id="notifPanel">
+  <div class="np-head">
+    <h3>🔔 Уведомления</h3>
+    <button class="m-close" onclick="toggleNotif()">✕</button>
+  </div>
+  <div class="np-list" id="notifList"></div>
+</div>
+
+<!-- =============================================
+     MODALS
+     ============================================= -->
+
+<!-- Task Create/Edit -->
+<div class="modal-bg" id="mdTask">
+  <div class="modal lg">
+    <div class="m-head"><h3 id="mdTaskTitle">Новое задание</h3><button class="m-close" onclick="mClose('mdTask')">✕</button></div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group full">
+          <label class="f-label">Наименование работ <span class="req">*</span></label>
+          <input class="fi" id="fName" placeholder="Например: Уборка торгового зала">
+          <span class="f-err">Обязательное поле</span>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Тип работ <span class="req">*</span></label>
+          <select class="fi-select" id="fType"><option value="">Выберите</option><option value="cleaning">Клининг</option><option value="repair">Ремонт</option><option value="maintenance">Техобслуживание</option><option value="security">Охрана</option><option value="logistics">Логистика</option><option value="other">Другое</option></select>
+          <span class="f-err">Выберите тип</span>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Магазин</label>
+          <select class="fi-select" id="fStore"><option>Магазин #1 — ТЦ «Мега»</option><option>Магазин #2 — ул. Ленина, 45</option><option>Магазин #3 — ТРК «Галерея»</option></select>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Дата начала <span class="req">*</span></label>
+          <input type="date" class="fi" id="fFrom">
+          <span class="f-err">Укажите дату</span>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Дата окончания <span class="req">*</span></label>
+          <input type="date" class="fi" id="fTo">
+          <span class="f-err">Укажите дату</span>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Кол-во специалистов</label>
+          <input type="number" class="fi" id="fCount" value="1" min="1" max="50">
+        </div>
+        <div class="f-group">
+          <label class="f-label">Приоритет</label>
+          <select class="fi-select" id="fPri"><option value="low">Низкий</option><option value="medium" selected>Средний</option><option value="high">Высокий</option></select>
+        </div>
+        <div class="f-group full">
+          <label class="f-label">Требования к исполнителям <span class="req">*</span></label>
+          <textarea class="fi-area" id="fReq" placeholder="Навыки, опыт, квалификация"></textarea>
+          <span class="f-err">Укажите требования</span>
+        </div>
+        <div class="f-group full">
+          <label class="f-label">Описание работ</label>
+          <textarea class="fi-area" id="fDesc" placeholder="Подробное описание"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-outline" onclick="mClose('mdTask')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveTask()">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Task Detail -->
+<div class="modal-bg" id="mdDetail">
+  <div class="modal lg">
+    <div class="m-head"><h3 id="mdDetailTitle">Задание</h3><button class="m-close" onclick="mClose('mdDetail')">✕</button></div>
+    <div class="m-body" id="mdDetailBody"></div>
+    <div class="m-foot" id="mdDetailFoot"></div>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="modal-bg" id="mdConfirm">
+  <div class="modal sm">
+    <div class="m-head"><h3 id="cfTitle">Подтверждение</h3><button class="m-close" onclick="mClose('mdConfirm')">✕</button></div>
+    <div class="m-body"><p id="cfMsg" style="font-size:14px;color:var(--c-text-2)"></p><div id="cfExtra" style="margin-top:14px"></div></div>
+    <div class="m-foot"><button class="btn btn-outline" onclick="mClose('mdConfirm')">Отмена</button><button class="btn" id="cfBtn">OK</button></div>
+  </div>
+</div>
+
+<!-- Specialist Detail -->
+<div class="modal-bg" id="mdSpec">
+  <div class="modal">
+    <div class="m-head"><h3>Карточка специалиста</h3><button class="m-close" onclick="mClose('mdSpec')">✕</button></div>
+    <div class="m-body" id="mdSpecBody"></div>
+    <div class="m-foot"><button class="btn btn-outline" onclick="mClose('mdSpec')">Закрыть</button></div>
+  </div>
+</div>
+
+<!-- Select Specialists -->
+<div class="modal-bg" id="mdPick">
+  <div class="modal lg">
+    <div class="m-head"><h3>Подбор специалистов</h3><button class="m-close" onclick="mClose('mdPick')">✕</button></div>
+    <div class="m-body">
+      <div class="filters" style="margin-bottom:14px">
+        <div class="fg"><label>Специализация</label><select class="fi-select" id="pickFilter"><option value="">Все</option><option value="cleaning">Клининг</option><option value="repair">Ремонт</option><option value="maintenance">Техобслуживание</option><option value="security">Охрана</option><option value="logistics">Логистика</option></select></div>
+        <div class="fg"><label>Доступность</label><select class="fi-select"><option value="1">Доступен</option><option value="">Все</option></select></div>
+      </div>
+      <div class="sp-grid" id="pickGrid"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-outline" onclick="mClose('mdPick')">Отмена</button>
+      <button class="btn btn-success" onclick="doPick()">✅ Назначить выбранных</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Specialist -->
+<div class="modal-bg" id="mdAddSpec">
+  <div class="modal lg">
+    <div class="m-head"><h3>Добавить специалиста</h3><button class="m-close" onclick="mClose('mdAddSpec')">✕</button></div>
+    <div class="m-body">
+      <div class="form-grid">
+        <div class="f-group"><label class="f-label">Фамилия <span class="req">*</span></label><input class="fi" id="asLast" placeholder="Иванов"></div>
+        <div class="f-group"><label class="f-label">Имя <span class="req">*</span></label><input class="fi" id="asFirst" placeholder="Пётр"></div>
+        <div class="f-group"><label class="f-label">Отчество</label><input class="fi" id="asMid" placeholder="Сергеевич"></div>
+        <div class="f-group"><label class="f-label">Телефон <span class="req">*</span></label><input class="fi" id="asPhone" placeholder="+7 (999) 123-45-67"></div>
+        <div class="f-group"><label class="f-label">Email</label><input class="fi" id="asEmail" placeholder="email@example.com"></div>
+        <div class="f-group"><label class="f-label">Специализация <span class="req">*</span></label><select class="fi-select" id="asSpec"><option value="">Выберите</option><option value="cleaning">Клининг</option><option value="repair">Ремонт</option><option value="maintenance">Техобслуживание</option><option value="security">Охрана</option><option value="logistics">Логистика</option></select></div>
+        <div class="f-group"><label class="f-label">Опыт (лет)</label><input type="number" class="fi" id="asExp" value="1" min="0"></div>
+        <div class="f-group"><label class="f-label">Договор <span class="req">*</span></label><input class="fi" id="asCon" placeholder="Д-2024-001"></div>
+        <div class="f-group"><label class="f-label">Договор до</label><input type="date" class="fi" id="asConEnd"></div>
+        <div class="f-group"><label class="f-label">Связать с заявкой</label><select class="fi-select" id="asLink"><option value="">Нет</option></select></div>
+        <div class="f-group full"><label class="f-label">Примечания</label><textarea class="fi-area" id="asNotes" placeholder="Доп. информация"></textarea></div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-outline" onclick="mClose('mdAddSpec')">Отмена</button>
+      <button class="btn btn-primary" onclick="doAddSpec()">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- HR Request -->
+<div class="modal-bg" id="mdHR">
+  <div class="modal">
+    <div class="m-head"><h3>Заявка на подбор персонала</h3><button class="m-close" onclick="mClose('mdHR')">✕</button></div>
+    <div class="m-body" id="mdHRBody"></div>
+    <div class="m-foot">
+      <button class="btn btn-outline" onclick="mClose('mdHR')">Отмена</button>
+      <button class="btn btn-primary" onclick="doHRReq()">📨 Отправить заявку</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Task -->
+<div class="modal-bg" id="mdCancel">
+  <div class="modal sm">
+    <div class="m-head"><h3>Отмена задания</h3><button class="m-close" onclick="mClose('mdCancel')">✕</button></div>
+    <div class="m-body">
+      <p style="font-size:14px;color:var(--c-text-2);margin-bottom:14px">Укажите причину отмены:</p>
+      <div class="f-group"><label class="f-label">Причина <span class="req">*</span></label><select class="fi-select" id="canReason"><option value="">Выберите</option><option value="error">Создано ошибочно</option><option value="irrelevant">Утратило актуальность</option><option value="duplicate">Дубликат</option><option value="other">Другое</option></select></div>
+      <div class="f-group" style="margin-top:10px"><label class="f-label">Комментарий</label><textarea class="fi-area" id="canComment" placeholder="Пояснения" style="min-height:50px"></textarea></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-outline" onclick="mClose('mdCancel')">Назад</button>
+      <button class="btn btn-danger" onclick="doCancel()">Отменить задание</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- =============================================
+     JAVASCRIPT
+     ============================================= -->
+<script>
+/* ====== CONSTANTS ====== */
+const TYPE = {cleaning:'Клининг',repair:'Ремонт',maintenance:'Техобслуживание',security:'Охрана',logistics:'Логистика',other:'Другое'};
+const STATUS = {new:'Новый',work:'В работе',done:'Выполнен',search:'Подбор',closed:'Закрыт',cancelled:'Отменён'};
+const PRI = {low:'Низкий',medium:'Средний',high:'Высокий'};
+const ACCOUNTS = {
+  store:{login:'store',pass:'store123',name:'Иванова М.С.',role:'Управляющий магазином',initials:'ИМ',colorClass:'c-blue'},
+  office:{login:'office',pass:'office123',name:'Смирнова Е.П.',role:'Управляющий офисом',initials:'СЕ',colorClass:'c-pink'},
+  hr:{login:'hr',pass:'hr123',name:'Александрова К.Д.',role:'HR-специалист',initials:'АК',colorClass:'c-green'}
+};
+
+/* ====== STATE ====== */
+let role = 'store';
+let page = 'dashboard';
+let editId = null;
+let pickForId = null;
+let cancelId = null;
+let picked = [];
+let taskSeq = 6;
+let specSeq = 9;
+
+/* ====== DATA ====== */
+let tasks = [
+  {id:1,name:'Генеральная уборка торгового зала',type:'cleaning',store:'Магазин #1 — ТЦ «Мега»',from:'2025-02-10',to:'2025-02-12',count:3,pri:'high',req:'Опыт работы с промышленным оборудованием от 2 лет',desc:'Полная уборка после ремонта',status:'new',created:'2025-02-05',specs:[],log:[{a:'Задание создано',u:'Иванова М.С.',d:'05.02.2025 10:30',c:'blue'}]},
+  {id:2,name:'Ремонт кондиционера',type:'repair',store:'Магазин #2 — ул. Ленина, 45',from:'2025-02-15',to:'2025-02-16',count:1,pri:'medium',req:'Сертификат HVAC',desc:'Не работает сплит-система в серверной',status:'work',created:'2025-02-06',specs:[],log:[{a:'Задание создано',u:'Иванова М.С.',d:'06.02.2025 09:00',c:'blue'},{a:'Отправлено в офис',u:'Иванова М.С.',d:'06.02.2025 09:15',c:'yellow'}]},
+  {id:3,name:'Техобслуживание эскалаторов',type:'maintenance',store:'Магазин #3 — ТРК «Галерея»',from:'2025-02-20',to:'2025-02-22',count:2,pri:'high',req:'Допуск к электрооборудованию, опыт от 5 лет',desc:'Плановое ТО двух эскалаторов',status:'work',created:'2025-02-07',specs:[],log:[{a:'Задание создано',u:'Петров А.В.',d:'07.02.2025 14:00',c:'blue'},{a:'Отправлено в офис',u:'Петров А.В.',d:'07.02.2025 14:30',c:'yellow'}]},
+  {id:4,name:'Охрана на время инвентаризации',type:'security',store:'Магазин #1 — ТЦ «Мега»',from:'2025-03-01',to:'2025-03-03',count:2,pri:'low',req:'Лицензия ЧОП, опыт охраны торговых объектов',desc:'Дополнительная охрана в ночное время',status:'done',created:'2025-02-08',specs:['Козлов А.И.','Сидоров Д.М.'],log:[{a:'Задание создано',u:'Иванова М.С.',d:'08.02.2025 11:00',c:'blue'},{a:'Отправлено в офис',u:'Иванова М.С.',d:'08.02.2025 11:30',c:'yellow'},{a:'Специалисты назначены',u:'Смирнова Е.П.',d:'09.02.2025 15:00',c:'green'}]},
+  {id:5,name:'Разгрузка товара',type:'logistics',store:'Магазин #2 — ул. Ленина, 45',from:'2025-02-25',to:'2025-02-25',count:4,pri:'medium',req:'Физическая выносливость, медкнижка',desc:'Приём крупной партии',status:'search',created:'2025-02-09',specs:[],hrId:1,log:[{a:'Задание создано',u:'Петров А.В.',d:'09.02.2025 08:00',c:'blue'},{a:'Отправлено в офис',u:'Петров А.В.',d:'09.02.2025 08:30',c:'yellow'},{a:'Заявка HR создана',u:'Смирнова Е.П.',d:'10.02.2025 10:00',c:'purple'}]}
+];
+
+let specs = [
+  {id:1,name:'Козлов Андрей Игоревич',ini:'КА',spec:'security',exp:8,phone:'+7(916)111-22-33',email:'kozlov@mail.ru',con:'Д-2024-012',conEnd:'2025-12-31',avail:true},
+  {id:2,name:'Сидоров Дмитрий Михайлович',ini:'СД',spec:'security',exp:5,phone:'+7(926)222-33-44',email:'sidorov@mail.ru',con:'Д-2024-015',conEnd:'2025-10-15',avail:true},
+  {id:3,name:'Петрова Елена Сергеевна',ini:'ПЕ',spec:'cleaning',exp:3,phone:'+7(903)333-44-55',email:'petrova@mail.ru',con:'Д-2024-020',conEnd:'2025-08-01',avail:true},
+  {id:4,name:'Фёдоров Игорь Петрович',ini:'ФИ',spec:'repair',exp:12,phone:'+7(905)444-55-66',email:'fedorov@mail.ru',con:'Д-2024-003',conEnd:'2026-03-01',avail:true},
+  {id:5,name:'Новиков Сергей Алексеевич',ini:'НС',spec:'maintenance',exp:7,phone:'+7(917)555-66-77',email:'novikov@mail.ru',con:'Д-2024-008',conEnd:'2025-11-30',avail:false},
+  {id:6,name:'Васильева Ольга Николаевна',ini:'ВО',spec:'cleaning',exp:2,phone:'+7(909)666-77-88',email:'vasileva@mail.ru',con:'Д-2024-025',conEnd:'2025-06-15',avail:true},
+  {id:7,name:'Морозов Алексей Владимирович',ini:'МА',spec:'logistics',exp:4,phone:'+7(912)777-88-99',email:'morozov@mail.ru',con:'Д-2024-030',conEnd:'2025-09-20',avail:true},
+  {id:8,name:'Кузнецова Мария Дмитриевна',ini:'КМ',spec:'maintenance',exp:6,phone:'+7(918)888-99-00',email:'kuznetsova@mail.ru',con:'Д-2024-018',conEnd:'2026-01-10',avail:true}
+];
+
+let hrReqs = [
+  {id:1,taskId:5,taskName:'Разгрузка товара',spec:'logistics',count:4,req:'Физическая выносливость, медкнижка',created:'10.02.2025',deadline:'23.02.2025',status:'active',pri:'medium'},
+  {id:2,taskId:null,taskName:'Уборка офисных помещений',spec:'cleaning',count:2,req:'Опыт от 1 года',created:'08.02.2025',deadline:'20.02.2025',status:'active',pri:'high'}
+];
+
+let notifs = [
+  {title:'Новое задание получено',text:'Задание #002 ожидает обработки',time:'5 мин назад',type:'info'},
+  {title:'Специалисты назначены',text:'На задание #004 назначены 2 специалиста',time:'1 час назад',type:'ok'},
+  {title:'Заявка на подбор',text:'Создана заявка для задания #005',time:'2 часа назад',type:'warn'}
+];
+
+/* ====== THEME ====== */
+let dark = localStorage.getItem('sf-dark') === '1';
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  const ic = dark ? '☀️' : '🌙';
+  const a = document.getElementById('themeBtnLogin');
+  const b = document.getElementById('themeBtnApp');
+  if(a) a.textContent = ic;
+  if(b) b.textContent = ic;
+}
+function toggleTheme(){ dark = !dark; localStorage.setItem('sf-dark', dark?'1':'0'); applyTheme(); }
+applyTheme();
+
+/* ====== LOGIN ====== */
+function pickRole(r, el){
+  role = r;
+  document.querySelectorAll('.lf-role').forEach(x => x.classList.remove('active'));
+  el.classList.add('active');
+  const acc = ACCOUNTS[r];
+  document.getElementById('inpLogin').value = acc.login;
+  document.getElementById('inpPass').value = acc.pass;
+}
+// pre-fill
+document.getElementById('inpLogin').value = ACCOUNTS.store.login;
+document.getElementById('inpPass').value = ACCOUNTS.store.pass;
+
+function toggleEye(){
+  const inp = document.getElementById('inpPass');
+  const btn = inp.parentElement.querySelector('.lf-eye');
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁';}
+}
+
+function doLogin(e){
+  e.preventDefault();
+  const login = document.getElementById('inpLogin').value.trim();
+  const pass = document.getElementById('inpPass').value.trim();
+  const errBox = document.getElementById('loginErr');
+  const errTxt = document.getElementById('loginErrText');
+
+  if(!login || !pass){
+    errTxt.textContent = 'Заполните все поля';
+    errBox.classList.add('show');
+    return;
+  }
+
+  const acc = ACCOUNTS[role];
+  if(login !== acc.login || pass !== acc.pass){
+    errTxt.textContent = 'Неверный логин или пароль';
+    errBox.classList.add('show');
+    const btn = document.getElementById('loginSubmit');
+    btn.style.animation = 'shake .4s';
+    setTimeout(()=> btn.style.animation = '', 400);
+    return;
+  }
+
+  errBox.classList.remove('show');
+  const btn = document.getElementById('loginSubmit');
+  btn.disabled = true;
+  btn.textContent = '⏳ Вход...';
+
+  setTimeout(()=>{
+    btn.disabled = false;
+    btn.textContent = 'Войти в систему';
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appShell').classList.add('active');
+    buildSidebar();
+    go('dashboard');
+    renderNotifs();
+    toast('ok', `Добро пожаловать, ${acc.name}!`);
+  }, 700);
+}
+
+function logout(){
+  document.getElementById('appShell').classList.remove('active');
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+/* ====== SIDEBAR ====== */
+function buildSidebar(){
+  const acc = ACCOUNTS[role];
+  let items = '';
+  if(role === 'store'){
+    const n = tasks.filter(t=>t.status==='new').length;
+    items = `
+      <span class="sb-label">Главное</span>
+      <button class="sb-item active" onclick="go('dashboard')"><span class="sb-icon">📊</span>Дашборд</button>
+      <button class="sb-item" onclick="go('tasks')"><span class="sb-icon">📋</span>Мои задания${n?`<span class="sb-badge">${n}</span>`:''}</button>
+      <span class="sb-label">Действия</span>
+      <button class="sb-item" onclick="openNewTask()"><span class="sb-icon">➕</span>Новое задание</button>
+    `;
+  } else if(role === 'office'){
+    const w = tasks.filter(t=>t.status==='work').length;
+    items = `
+      <span class="sb-label">Главное</span>
+      <button class="sb-item active" onclick="go('dashboard')"><span class="sb-icon">📊</span>Дашборд</button>
+      <button class="sb-item" onclick="go('tasks')"><span class="sb-icon">📋</span>Задания${w?`<span class="sb-badge">${w}</span>`:''}</button>
+      <button class="sb-item" onclick="go('specs')"><span class="sb-icon">👤</span>Специалисты</button>
+      <span class="sb-label">Отчёты</span>
+      <button class="sb-item" onclick="go('archive')"><span class="sb-icon">📁</span>Архив</button>
+    `;
+  } else {
+    const a = hrReqs.filter(r=>r.status==='active').length;
+    items = `
+      <span class="sb-label">Главное</span>
+      <button class="sb-item active" onclick="go('dashboard')"><span class="sb-icon">📊</span>Дашборд</button>
+      <button class="sb-item" onclick="go('requests')"><span class="sb-icon">📩</span>Заявки${a?`<span class="sb-badge">${a}</span>`:''}</button>
+      <button class="sb-item" onclick="go('specs')"><span class="sb-icon">👥</span>База специалистов</button>
+      <span class="sb-label">Действия</span>
+      <button class="sb-item" onclick="mOpen('mdAddSpec')"><span class="sb-icon">➕</span>Добавить специалиста</button>
+    `;
+  }
+
+  document.getElementById('sidebar').innerHTML = `
+    <div class="sb-header"><div class="sb-logo">⚙️</div><span class="sb-brand">ServiceFlow</span></div>
+    <nav class="sb-nav">${items}</nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar ${acc.colorClass}">${acc.initials}</div>
+        <div><div class="sb-uname">${acc.name}</div><div class="sb-urole">${acc.role}</div></div>
+      </div>
+      <button class="sb-logout" onclick="logout()">🚪 Выйти из системы</button>
+    </div>
+  `;
+}
+
+function markNav(p){
+  document.querySelectorAll('.sb-item').forEach(b=>{
+    b.classList.remove('active');
+    const t = b.textContent.toLowerCase();
+    if((p==='dashboard'&&t.includes('дашборд'))||(p==='tasks'&&t.includes('задани')&&!t.includes('новое'))||(p==='specs'&&(t.includes('специалист')||t.includes('база')))||(p==='requests'&&t.includes('заявки'))||(p==='archive'&&t.includes('архив')))
+      b.classList.add('active');
+  });
+}
+
+/* ====== NAVIGATION ====== */
+function go(p){
+  page = p;
+  markNav(p);
+  const el = document.getElementById('pageContent');
+  const title = document.getElementById('pageTitle');
+  switch(p){
+    case 'dashboard': title.textContent='Дашборд'; renderDash(el); break;
+    case 'tasks': title.textContent=role==='store'?'Мои задания':'Все задания'; renderTasks(el); break;
+    case 'specs': title.textContent=role==='hr'?'База специалистов':'Специалисты'; renderSpecs(el); break;
+    case 'requests': title.textContent='Заявки на подбор'; renderReqs(el); break;
+    case 'archive': title.textContent='Архив заданий'; renderArchive(el); break;
+  }
+}
+
+/* ====== DASHBOARD ====== */
+function renderDash(el){
+  let s = '';
+  if(role==='store'){
+    s = `
+      <div class="stat a-blue"><div class="stat-ic blue">📋</div><div><div class="stat-num">${tasks.length}</div><div class="stat-lbl">Всего заданий</div></div></div>
+      <div class="stat a-yellow"><div class="stat-ic yellow">🆕</div><div><div class="stat-num">${tasks.filter(t=>t.status==='new').length}</div><div class="stat-lbl">Черновики</div></div></div>
+      <div class="stat a-purple"><div class="stat-ic purple">⏳</div><div><div class="stat-num">${tasks.filter(t=>t.status==='work').length}</div><div class="stat-lbl">В работе</div></div></div>
+      <div class="stat a-green"><div class="stat-ic green">✅</div><div><div class="stat-num">${tasks.filter(t=>t.status==='done').length}</div><div class="stat-lbl">Выполнены</div></div></div>
+    `;
+  } else if(role==='office'){
+    s = `
+      <div class="stat a-yellow"><div class="stat-ic yellow">⏳</div><div><div class="stat-num">${tasks.filter(t=>t.status==='work').length}</div><div class="stat-lbl">Ожидают обработки</div></div></div>
+      <div class="stat a-green"><div class="stat-ic green">✅</div><div><div class="stat-num">${tasks.filter(t=>t.status==='done').length}</div><div class="stat-lbl">Выполнены</div></div></div>
+      <div class="stat a-purple"><div class="stat-ic purple">🔍</div><div><div class="stat-num">${tasks.filter(t=>t.status==='search').length}</div><div class="stat-lbl">На подборе</div></div></div>
+      <div class="stat a-blue"><div class="stat-ic blue">👤</div><div><div class="stat-num">${specs.filter(x=>x.avail).length}</div><div class="stat-lbl">Доступных спец.</div></div></div>
+    `;
+  } else {
+    s = `
+      <div class="stat a-yellow"><div class="stat-ic yellow">📩</div><div><div class="stat-num">${hrReqs.filter(r=>r.status==='active').length}</div><div class="stat-lbl">Активных заявок</div></div></div>
+      <div class="stat a-green"><div class="stat-ic green">✅</div><div><div class="stat-num">${hrReqs.filter(r=>r.status==='closed').length}</div><div class="stat-lbl">Закрыто</div></div></div>
+      <div class="stat a-blue"><div class="stat-ic blue">👥</div><div><div class="stat-num">${specs.length}</div><div class="stat-lbl">В базе</div></div></div>
+      <div class="stat a-purple"><div class="stat-ic purple">📊</div><div><div class="stat-num">${specs.filter(x=>x.avail).length}</div><div class="stat-lbl">Доступны</div></div></div>
+    `;
+  }
+  const rows = [...tasks].sort((a,b)=>b.id-a.id).slice(0,5).map(t=>
+    `<tr onclick="openDetail(${t.id})"><td><strong>#${pad(t.id)}</strong></td><td>${t.name}</td><td>${TYPE[t.type]}</td><td>${bdg(t.status)}</td><td>${t.created}</td></tr>`
+  ).join('');
+
+  el.innerHTML = `
+    <div class="stats">${s}</div>
+    <div class="card">
+      <div class="card-hd"><h3>📋 Последние задания</h3><button class="btn btn-outline btn-s" onclick="go('tasks')">Все →</button></div>
+      <div class="card-bd np"><div class="tw"><table><thead><tr><th>ID</th><th>Наименование</th><th>Тип</th><th>Статус</th><th>Создано</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+    </div>
+  `;
+}
+
+/* ====== TASKS ====== */
+function renderTasks(el){
+  const allow = role==='store' ? ['new','work','done','search','cancelled','closed'] : ['work','done','search','closed'];
+  const list = tasks.filter(t=>allow.includes(t.status));
+  const addBtn = role==='store' ? `<button class="btn btn-primary" onclick="openNewTask()">➕ Новое задание</button>` : '';
+
+  const rows = list.map(t=>{
+    let act = '';
+    if(role==='store'){
+      if(t.status==='new') act=`<button class="btn btn-s btn-outline" onclick="event.stopPropagation();openEditTask(${t.id})">✏️</button><button class="btn btn-s btn-primary" onclick="event.stopPropagation();sendTask(${t.id})">📤</button><button class="btn btn-s btn-danger" onclick="event.stopPropagation();openCancel(${t.id})">✕</button>`;
+      else if(t.status==='work'||t.status==='search') act=`<button class="btn btn-s btn-danger" onclick="event.stopPropagation();openCancel(${t.id})">✕</button>`;
+    } else if(role==='office'){
+      if(t.status==='work') act=`<button class="btn btn-s btn-success" onclick="event.stopPropagation();openPick(${t.id})">👤</button><button class="btn btn-s btn-warning" onclick="event.stopPropagation();openHR(${t.id})">📩</button>`;
+      else if(t.status==='done') act=`<button class="btn btn-s btn-outline" onclick="event.stopPropagation();closeTask(${t.id})">🔒</button>`;
+    }
+    return `<tr onclick="openDetail(${t.id})"><td><strong>#${pad(t.id)}</strong></td><td>${t.name}</td><td>${TYPE[t.type]}</td><td>${t.store}</td><td>${bdg(t.status)}</td><td>${t.from}</td><td><span class="pri pri-${t.pri}">${PRI[t.pri]}</span></td><td onclick="event.stopPropagation()" style="white-space:nowrap">${act}</td></tr>`;
+  }).join('') || `<tr><td colspan="8"><div class="empty"><div class="e-ic">📭</div><h3>Заданий пока нет</h3><p>Создайте первое задание</p></div></td></tr>`;
+
+  el.innerHTML = `
+    <div class="filters">
+      <div class="search"><span class="s-ic">🔍</span><input class="fi" placeholder="Поиск..." oninput="searchTbl(this.value)"></div>
+      ${addBtn}
+    </div>
+    <div class="card"><div class="card-bd np"><div class="tw"><table id="tasksTbl"><thead><tr><th>ID</th><th>Наименование</th><th>Тип</th><th>Магазин</th><th>Статус</th><th>Начало</th><th>Приоритет</th><th>Действия</th></tr></thead><tbody>${rows}</tbody></table></div></div></div>
+  `;
+}
+function searchTbl(q){document.querySelectorAll('#tasksTbl tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none');}
+
+/* ====== TASK DETAIL ====== */
+function openDetail(id){
+  const t = tasks.find(x=>x.id===id);
+  if(!t) return;
+  document.getElementById('mdDetailTitle').textContent = `Задание #${pad(t.id)} — ${t.name}`;
+
+  const hist = t.log.map(l=>`<div class="tl-i"><div class="tl-dot ${l.c}">●</div><div><div class="tl-title">${l.a}</div><div class="tl-desc">${l.u}</div><div class="tl-time">${l.d}</div></div></div>`).join('');
+  const assigned = t.specs.length ? t.specs.map(s=>`<div style="padding:7px 12px;background:var(--c-surface-3);border-radius:8px;font-size:13px;font-weight:500">👤 ${s}</div>`).join('') : '<p style="color:var(--c-text-3);font-size:13px">Не назначены</p>';
+
+  document.getElementById('mdDetailBody').innerHTML = `
+    <div class="det-grid">
+      <div class="info-list">
+        <div class="il-item"><span class="il-label">Наименование</span><span class="il-val">${t.name}</span></div>
+        <div class="il-row">
+          <div class="il-item"><span class="il-label">Тип</span><span class="il-val">${TYPE[t.type]}</span></div>
+          <div class="il-item"><span class="il-label">Приоритет</span><span class="il-val"><span class="pri pri-${t.pri}">${PRI[t.pri]}</span></span></div>
+        </div>
+        <div class="il-item"><span class="il-label">Магазин</span><span class="il-val">${t.store}</span></div>
+        <div class="il-row">
+          <div class="il-item"><span class="il-label">Период</span><span class="il-val">${t.from} — ${t.to}</span></div>
+          <div class="il-item"><span class="il-label">Специалистов</span><span class="il-val">${t.count}</span></div>
+        </div>
+        <div class="il-item"><span class="il-label">Статус</span><span class="il-val">${bdg(t.status)}</span></div>
+        <div class="il-item"><span class="il-label">Требования</span><span class="il-val">${t.req}</span></div>
+        <div class="il-item"><span class="il-label">Описание</span><span class="il-val">${t.desc||'—'}</span></div>
+        <div class="il-item"><span class="il-label">Назначенные</span><div style="display:flex;flex-direction:column;gap:5px;margin-top:4px">${assigned}</div></div>
+      </div>
+      <div>
+        <div class="card" style="box-shadow:none"><div class="card-hd"><h3>📜 История</h3></div><div class="card-bd"><div class="timeline">${hist}</div></div></div>
+      </div>
+    </div>
+  `;
+
+  let foot = `<button class="btn btn-outline" onclick="mClose('mdDetail')">Закрыть</button>`;
+  if(role==='store' && t.status==='new') foot = `<button class="btn btn-outline" onclick="mClose('mdDetail')">Закрыть</button><button class="btn btn-outline" onclick="mClose('mdDetail');openEditTask(${t.id})">✏️ Редактировать</button><button class="btn btn-primary" onclick="mClose('mdDetail');sendTask(${t.id})">📤 Отправить</button>`;
+  else if(role==='office' && t.status==='work') foot = `<button class="btn btn-outline" onclick="mClose('mdDetail')">Закрыть</button><button class="btn btn-success" onclick="mClose('mdDetail');openPick(${t.id})">👤 Подбор</button><button class="btn btn-warning" onclick="mClose('mdDetail');openHR(${t.id})">📩 Заявка HR</button>`;
+  else if(role==='office' && t.status==='done') foot = `<button class="btn btn-outline" onclick="mClose('mdDetail')">Закрыть</button><button class="btn btn-outline" onclick="mClose('mdDetail');closeTask(${t.id})">🔒 Закрыть задание</button>`;
+  document.getElementById('mdDetailFoot').innerHTML = foot;
+  mOpen('mdDetail');
+}
+
+/* ====== CREATE / EDIT TASK ====== */
+function openNewTask(){
+  editId = null;
+  document.getElementById('mdTaskTitle').textContent = 'Новое задание';
+  ['fName','fReq','fDesc'].forEach(x=>$$(x).value='');
+  $$('fType').value=''; $$('fFrom').value=''; $$('fTo').value='';
+  $$('fCount').value='1'; $$('fPri').value='medium';
+  clrErr(); mOpen('mdTask');
+}
+function openEditTask(id){
+  const t = tasks.find(x=>x.id===id);
+  if(!t||t.status!=='new'){toast('err','Редактирование недоступно');return;}
+  editId = id;
+  document.getElementById('mdTaskTitle').textContent = `Редактировать #${pad(id)}`;
+  $$('fName').value=t.name; $$('fType').value=t.type; $$('fFrom').value=t.from;
+  $$('fTo').value=t.to; $$('fCount').value=t.count; $$('fPri').value=t.pri;
+  $$('fReq').value=t.req; $$('fDesc').value=t.desc;
+  clrErr(); mOpen('mdTask');
+}
+function saveTask(){
+  clrErr();
+  let ok = true;
+  const v = id => $$(id).value.trim();
+  if(!v('fName')){sErr('fName');ok=false}
+  if(!v('fType')){sErr('fType');ok=false}
+  if(!v('fFrom')){sErr('fFrom');ok=false}
+  if(!v('fTo')){sErr('fTo');ok=false}
+  if(!v('fReq')){sErr('fReq');ok=false}
+  if(v('fFrom')&&v('fTo')&&v('fFrom')>v('fTo')){sErr('fTo');toast('err','Дата окончания раньше начала');ok=false}
+  if(!ok){toast('err','Заполните обязательные поля');return}
+
+  const store = $$('fStore').options[$$('fStore').selectedIndex].text;
+  const u = ACCOUNTS[role].name;
+
+  if(editId){
+    const t = tasks.find(x=>x.id===editId);
+    Object.assign(t,{name:v('fName'),type:v('fType'),store,from:v('fFrom'),to:v('fTo'),count:+$$('fCount').value,pri:v('fPri'),req:v('fReq'),desc:v('fDesc')});
+    t.log.push({a:'Задание отредактировано',u,d:stamp(),c:'blue'});
+    toast('ok',`Задание #${pad(t.id)} обновлено`);
+  } else {
+    const nt = {id:taskSeq++,name:v('fName'),type:v('fType'),store,from:v('fFrom'),to:v('fTo'),count:+$$('fCount').value,pri:v('fPri'),req:v('fReq'),desc:v('fDesc'),status:'new',created:today(),specs:[],log:[{a:'Задание создано',u,d:stamp(),c:'blue'}]};
+    tasks.push(nt);
+    toast('ok',`Задание #${pad(nt.id)} создано`);
+  }
+  mClose('mdTask'); buildSidebar(); go(page);
+}
+
+/* ====== SEND TASK ====== */
+function sendTask(id){
+  const t = tasks.find(x=>x.id===id);
+  if(!t||t.status!=='new') return;
+  confirm('Отправить в офис?',`Задание #${pad(id)} «${t.name}» будет отправлено. Редактирование станет недоступно.`,'btn-primary','📤 Отправить',()=>{
+    t.status='work';
+    t.log.push({a:'Отправлено в центральный офис',u:ACCOUNTS[role].name,d:stamp(),c:'yellow'});
+    notifs.unshift({title:'Задание отправлено',text:`#${pad(id)} отправлено`,time:'Только что',type:'ok'});
+    mClose('mdConfirm'); toast('ok','Задание отправлено'); buildSidebar(); go(page);
+  });
+}
+
+/* ====== CANCEL ====== */
+function openCancel(id){cancelId=id;$$('canReason').value='';$$('canComment').value='';mOpen('mdCancel')}
+function doCancel(){
+  if(!$$('canReason').value){toast('err','Выберите причину');return}
+  const t = tasks.find(x=>x.id===cancelId); if(!t) return;
+  t.status='cancelled';
+  const cm = $$('canComment').value.trim();
+  t.log.push({a:`Отменено: ${$$('canReason').selectedOptions[0].text}${cm?' — '+cm:''}`,u:ACCOUNTS[role].name,d:stamp(),c:'blue'});
+  mClose('mdCancel'); toast('info',`#${pad(t.id)} отменено`); buildSidebar(); go(page);
+}
+
+/* ====== PICK SPECIALISTS ====== */
+function openPick(tid){pickForId=tid;picked=[];renderPickGrid();mOpen('mdPick')}
+function renderPickGrid(){
+  document.getElementById('pickGrid').innerHTML = specs.filter(s=>s.avail).map(s=>
+    `<div class="sp-card${picked.includes(s.id)?' sel':''}" onclick="togglePick(${s.id})">
+      <div class="sp-chk">✓</div>
+      <div class="sp-top"><div class="sp-av">${s.ini}</div><div><div class="sp-nm">${s.name}</div><div class="sp-rl">${TYPE[s.spec]}</div></div></div>
+      <div class="sp-info"><div class="sp-row">📅 Опыт: ${s.exp} лет</div><div class="sp-row">📄 ${s.con}</div><div class="sp-row">📞 ${s.phone}</div></div>
+      <button class="btn btn-ghost btn-s" onclick="event.stopPropagation();openSpec(${s.id})" style="width:100%;margin-top:8px">Подробнее</button>
+    </div>`
+  ).join('');
+}
+function togglePick(id){picked.includes(id)?picked=picked.filter(x=>x!==id):picked.push(id);renderPickGrid()}
+function doPick(){
+  if(!picked.length){toast('err','Выберите хотя бы одного');return}
+  const t = tasks.find(x=>x.id===pickForId); if(!t) return;
+  const names = picked.map(id=>specs.find(s=>s.id===id)?.name).filter(Boolean);
+  t.specs=names; t.status='done';
+  t.log.push({a:`Назначены: ${names.join(', ')}`,u:ACCOUNTS[role].name,d:stamp(),c:'green'});
+  notifs.unshift({title:'Специалисты назначены',text:`#${pad(t.id)}: ${names.length} спец.`,time:'Только что',type:'ok'});
+  mClose('mdPick'); toast('ok',`Назначено ${names.length} спец.`); buildSidebar(); go(page);
+}
+
+/* ====== SPEC DETAIL ====== */
+function openSpec(id){
+  const s = specs.find(x=>x.id===id); if(!s) return;
+  document.getElementById('mdSpecBody').innerHTML = `
+    <div style="text-align:center;margin-bottom:22px">
+      <div class="sp-av" style="width:68px;height:68px;font-size:24px;margin:0 auto 12px;border-radius:16px">${s.ini}</div>
+      <h3 style="font-size:19px;font-weight:700">${s.name}</h3>
+      <p style="color:var(--c-text-2)">${TYPE[s.spec]}</p>
+    </div>
+    <div class="info-list">
+      <div class="il-row">
+        <div class="il-item"><span class="il-label">Опыт</span><span class="il-val">${s.exp} лет</span></div>
+        <div class="il-item"><span class="il-label">Доступность</span><span class="il-val">${s.avail?'<span style="color:var(--c-success);font-weight:700">Доступен</span>':'<span style="color:var(--c-danger);font-weight:700">Занят</span>'}</span></div>
+      </div>
+      <div class="il-item"><span class="il-label">Телефон</span><span class="il-val">${s.phone}</span></div>
+      <div class="il-item"><span class="il-label">Email</span><span class="il-val">${s.email}</span></div>
+      <div class="il-item"><span class="il-label">Договор</span><span class="il-val">${s.con} (до ${s.conEnd})</span></div>
+    </div>
+  `;
+  mOpen('mdSpec');
+}
+
+/* ====== CLOSE TASK ====== */
+function closeTask(id){
+  const t = tasks.find(x=>x.id===id); if(!t) return;
+  confirm('Закрыть задание?',`#${pad(id)} «${t.name}» будет закрыто.`,'btn-primary','🔒 Закрыть',()=>{
+    t.status='closed';
+    t.log.push({a:'Задание закрыто',u:ACCOUNTS[role].name,d:stamp(),c:'green'});
+    mClose('mdConfirm'); toast('ok','Задание закрыто'); buildSidebar(); go(page);
+  });
+}
+
+/* ====== HR REQUEST ====== */
+function openHR(tid){
+  const t = tasks.find(x=>x.id===tid); if(!t) return;
+  document.getElementById('mdHRBody').innerHTML = `
+    <p style="font-size:14px;color:var(--c-text-2);margin-bottom:14px">Заявка будет создана и отправлена HR-специалистам.</p>
+    <div class="info-list" style="background:var(--c-surface-3);padding:18px;border-radius:10px">
+      <div class="il-item"><span class="il-label">Задание</span><span class="il-val">#${pad(t.id)} — ${t.name}</span></div>
+      <div class="il-item"><span class="il-label">Тип</span><span class="il-val">${TYPE[t.type]}</span></div>
+      <div class="il-item"><span class="il-label">Кол-во</span><span class="il-val">${t.count}</span></div>
+      <div class="il-item"><span class="il-label">Требования</span><span class="il-val">${t.req}</span></div>
+      <div class="il-item"><span class="il-label">Срок</span><span class="il-val">${t.from} — ${t.to}</span></div>
+    </div>
+    <input type="hidden" id="hrTid" value="${t.id}">
+  `;
+  mOpen('mdHR');
+}
+function doHRReq(){
+  const tid = +$$('hrTid').value;
+  const t = tasks.find(x=>x.id===tid); if(!t) return;
+  const nr = {id:hrReqs.length+1,taskId:tid,taskName:t.name,spec:t.type,count:t.count,req:t.req,created:new Date().toLocaleDateString('ru-RU'),deadline:t.to,status:'active',pri:t.pri};
+  hrReqs.push(nr);
+  t.status='search'; t.hrId=nr.id;
+  t.log.push({a:'Заявка HR создана',u:ACCOUNTS[role].name,d:stamp(),c:'purple'});
+  notifs.unshift({title:'Новая заявка HR',text:`Заявка для «${t.name}»`,time:'Только что',type:'warn'});
+  mClose('mdHR'); toast('ok','Заявка отправлена HR'); buildSidebar(); go(page);
+}
+
+/* ====== SPECIALISTS PAGE ====== */
+function renderSpecs(el){
+  const ab = role==='hr' ? `<button class="btn btn-primary" onclick="mOpen('mdAddSpec')">➕ Добавить</button>` : '';
+  const cards = specs.map(s=>
+    `<div class="sp-card" onclick="openSpec(${s.id})">
+      <div class="sp-top"><div class="sp-av">${s.ini}</div><div><div class="sp-nm">${s.name}</div><div class="sp-rl">${TYPE[s.spec]}</div></div></div>
+      <div class="sp-info"><div class="sp-row">📅 ${s.exp} лет опыта</div><div class="sp-row">📄 ${s.con}</div><div class="sp-row">${s.avail?'🟢 Доступен':'🔴 Занят'}</div></div>
+    </div>`
+  ).join('');
+  el.innerHTML = `<div class="filters"><div class="search"><span class="s-ic">🔍</span><input class="fi" placeholder="Поиск..." style="padding-left:38px"></div>${ab}</div><div class="sp-grid">${cards}</div>`;
+}
+
+/* ====== ADD SPECIALIST ====== */
+function doAddSpec(){
+  const v = id => $$(id).value.trim();
+  if(!v('asLast')||!v('asFirst')||!v('asPhone')||!v('asSpec')||!v('asCon')){toast('err','Заполните обязательные поля');return}
+  const fn = `${v('asLast')} ${v('asFirst')} ${v('asMid')}`.trim();
+  const ns = {id:specSeq++,name:fn,ini:v('asLast')[0]+v('asFirst')[0],spec:v('asSpec'),exp:+v('asExp')||0,phone:v('asPhone'),email:v('asEmail'),con:v('asCon'),conEnd:v('asConEnd')||'2025-12-31',avail:true};
+  specs.push(ns);
+
+  const lr = v('asLink');
+  if(lr){
+    const rid = +lr.replace('req','');
+    const req = hrReqs.find(r=>r.id===rid);
+    if(req){req.status='closed'; const lt=tasks.find(t=>t.id===req.taskId); if(lt){lt.specs.push(fn);lt.status='done';lt.log.push({a:`${fn} назначен через HR`,u:ACCOUNTS[role].name,d:stamp(),c:'green'})}}
+  }
+
+  mClose('mdAddSpec'); toast('ok',`«${fn}» добавлен в базу`);
+  ['asLast','asFirst','asMid','asPhone','asEmail','asCon','asConEnd','asNotes'].forEach(x=>$$(x).value='');
+  $$('asSpec').value=''; $$('asLink').value='';
+  buildSidebar(); go(page);
+}
+
+/* ====== HR REQUESTS PAGE ====== */
+function renderReqs(el){
+  const act = hrReqs.filter(r=>r.status==='active');
+  const cls = hrReqs.filter(r=>r.status==='closed');
+
+  let aRows = act.map(r=>`<tr><td><strong>#${pad(r.id)}</strong></td><td>${r.taskName}</td><td>${TYPE[r.spec]}</td><td>${r.count}</td><td><span class="pri pri-${r.pri}">${PRI[r.pri]}</span></td><td>${r.created}</td><td>${r.deadline}</td><td>${bdg('work')}</td><td><button class="btn btn-s btn-primary" onclick="mOpen('mdAddSpec')">👤 Добавить</button></td></tr>`).join('');
+  if(!aRows) aRows = `<tr><td colspan="9"><div class="empty"><div class="e-ic">✅</div><h3>Нет активных заявок</h3></div></td></tr>`;
+
+  let cRows = cls.map(r=>`<tr><td>#${pad(r.id)}</td><td>${r.taskName}</td><td>${TYPE[r.spec]}</td><td>${r.created}</td><td>${bdg('done')}</td></tr>`).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--c-text-3);padding:18px">Пусто</td></tr>`;
+
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:22px"><div class="card-hd"><h3>📩 Активные заявки</h3><span style="color:var(--c-text-2);font-size:13px">${act.length}</span></div><div class="card-bd np"><div class="tw"><table><thead><tr><th>ID</th><th>Задание</th><th>Спец-ция</th><th>Кол-во</th><th>Приоритет</th><th>Создана</th><th>Срок</th><th>Статус</th><th>Действия</th></tr></thead><tbody>${aRows}</tbody></table></div></div></div>
+    <div class="card"><div class="card-hd"><h3>📁 Закрытые</h3></div><div class="card-bd np"><div class="tw"><table><thead><tr><th>ID</th><th>Задание</th><th>Спец-ция</th><th>Создана</th><th>Статус</th></tr></thead><tbody>${cRows}</tbody></table></div></div></div>
+  `;
+}
+
+/* ====== ARCHIVE ====== */
+function renderArchive(el){
+  const arch = tasks.filter(t=>['done','closed','cancelled'].includes(t.status));
+  let rows = arch.map(t=>`<tr onclick="openDetail(${t.id})"><td><strong>#${pad(t.id)}</strong></td><td>${t.name}</td><td>${TYPE[t.type]}</td><td>${t.store}</td><td>${bdg(t.status)}</td><td>${t.specs.join(', ')||'—'}</td></tr>`).join('');
+  if(!rows) rows = `<tr><td colspan="6"><div class="empty"><div class="e-ic">📁</div><h3>Архив пуст</h3></div></td></tr>`;
+  el.innerHTML = `<div class="card"><div class="card-hd"><h3>📁 Архив</h3><span style="color:var(--c-text-2);font-size:13px">${arch.length} записей</span></div><div class="card-bd np"><div class="tw"><table><thead><tr><th>ID</th><th>Наименование</th><th>Тип</th><th>Магазин</th><th>Статус</th><th>Специалисты</th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`;
+}
+
+/* ====== NOTIFICATIONS ====== */
+function renderNotifs(){
+  const cls = {info:'ni-info',ok:'ni-ok',warn:'ni-warn'};
+  document.getElementById('notifList').innerHTML = notifs.map(n=>
+    `<div class="np-item ${cls[n.type]||'ni-info'}"><div class="np-title">${n.title}</div><div class="np-text">${n.text}</div><div class="np-time">${n.time}</div></div>`
+  ).join('');
+}
+function toggleNotif(){document.getElementById('notifPanel').classList.toggle('open');renderNotifs()}
+
+/* ====== MODAL HELPERS ====== */
+function mOpen(id){document.getElementById(id).classList.add('open')}
+function mClose(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
+
+function confirm(title,msg,cls,txt,fn){
+  document.getElementById('cfTitle').textContent=title;
+  document.getElementById('cfMsg').textContent=msg;
+  document.getElementById('cfExtra').innerHTML='';
+  const b=document.getElementById('cfBtn');
+  b.className='btn '+cls; b.textContent=txt; b.onclick=fn;
+  mOpen('mdConfirm');
+}
+
+/* ====== TOAST ====== */
+function toast(type,msg){
+  const box = document.getElementById('toasts');
+  const icons = {ok:'✅',err:'❌',info:'ℹ️',warn:'⚠️'};
+  const cls = {ok:'t-ok',err:'t-err',info:'t-info',warn:'t-warn'};
+  const el = document.createElement('div');
+  el.className = `toast ${cls[type]||'t-info'}`;
+  el.innerHTML = `<span>${icons[type]||''}</span>${msg}`;
+  box.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(80px)';el.style.transition='all .3s';setTimeout(()=>el.remove(),300)},3500);
+}
+
+/* ====== FORM HELPERS ====== */
+function sErr(id){$$(id)?.closest('.f-group')?.classList.add('err')}
+function clrErr(){document.querySelectorAll('.f-group.err').forEach(g=>g.classList.remove('err'))}
+
+/* ====== UTILITY ====== */
+function $$(id){return document.getElementById(id)}
+function pad(n){return String(n).padStart(3,'0')}
+function stamp(){const d=new Date();return`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function today(){return new Date().toISOString().split('T')[0]}
+function bdg(s){return`<span class="badge b-${s}"><span class="dot"></span>${STATUS[s]}</span>`}
+
+/* Shake animation */
+const ss=document.createElement('style');
+ss.textContent=`@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}`;
+document.head.appendChild(ss);
+</script>
+</body>
+</html>
